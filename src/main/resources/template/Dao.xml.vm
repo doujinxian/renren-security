@@ -2,44 +2,87 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="${package}.dao.${className}Dao">
-
-	<select id="queryObject" resultType="${package}.entity.${className}Entity">
-		select * from ${tableName} where ${pk.columnName} = #{value}
-	</select>
-
-	<select id="queryList" resultType="${package}.entity.${className}Entity">
-		select * from ${tableName} 
-		<if test="offset != null and limit != null">
-			limit #{offset}, #{limit}
-		</if>
-	</select>
 	
- 	<select id="queryTotal" resultType="int">
-		select count(*) from ${tableName} 
-	</select>
-	 
-	<insert id="save" parameterType="${package}.entity.${className}Entity"#if($pk.extra == 'auto_increment') useGeneratedKeys="true" keyProperty="$pk.attrname"#end>
-		insert into ${tableName}
-		(
+	<resultMap id="RM_${className}" type="${package}.entity.${className}">
+#foreach($column in $columns)
+			<result property="$column.attrname" column="$column.columnName"/>
+#end
+	</resultMap>
+	
+	<!-- 用于select查询公用抽取的列 -->
+	<sql id="${className}_columns">
+	    <![CDATA[
 #foreach($column in $columns)
 #if($column.columnName != $pk.columnName || $pk.extra != 'auto_increment')
 			`$column.columnName`#if($velocityCount != $columns.size()), #end
 
 #end			
 #end
+	    ]]>
+	</sql>
+	
+	<!-- 用于where查询公用抽取的列 -->
+	<sql id="${className}_condition">
+		<where>
+        <trim suffix="" suffixOverrides="and">
+#foreach($column in $columns)
+#if($column.columnName != $pk.columnName)
+			<if test="$column.attrname != null">`$column.columnName` = #{$column.attrname}#if($velocityCount != $columns.size()), #end</if>
+#end
+#end
+        </trim>
+		</where>
+	</sql>
+	
+	<select id="queryObject" resultMap="RM_${className}">
+		select 
+		<include refid="${className}_columns" />
+		from ${tableName} 
+		where
+		${pk.columnName} = #{value}
+	</select>
+
+	<select id="queryList" resultMap="RM_${className}">
+		select 
+		<include refid="${className}_columns" />
+		from ${tableName}
+		<include refid="${className}_condition"/> 
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="java.lang.Integer">
+		select 
+		count(1) 
+		from ${tableName} 
+		<include refid="${className}_condition"/>
+	</select>
+	 
+	<insert id="save" parameterType="${package}.entity.${className}"#if($pk.extra == 'auto_increment') useGeneratedKeys="true" keyProperty="$pk.attrname"#end>
+		insert into ${tableName}
+		(
+		<trim suffix="" suffixOverrides=",">
+#foreach($column in $columns)
+#if($column.columnName != $pk.columnName || $pk.extra != 'auto_increment')
+			<if test="$column.attrname!=null">$column.columnName#if($velocityCount != $columns.size()), #end</if>
+#end			
+#end
+	     </trim>
 		)
 		values
 		(
+		<trim suffix="" suffixOverrides=",">
 #foreach($column in $columns)
 #if($column.columnName != $pk.columnName || $pk.extra != 'auto_increment')
-			#{$column.attrname}#if($velocityCount != $columns.size()), #end
-
+			<if test="$column.attrname!=null">#{$column.attrname}#if($velocityCount != $columns.size()), #end</if>
 #end			
 #end
+	     </trim>
 		)
 	</insert>
 	 
-	<update id="update" parameterType="${package}.entity.${className}Entity">
+	<update id="update" parameterType="${package}.entity.${className}">
 		update ${tableName} 
 		<set>
 #foreach($column in $columns)
