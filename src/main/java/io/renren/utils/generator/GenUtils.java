@@ -149,7 +149,12 @@ public class GenUtils {
 	 */
 	public static String tableToJava(String tableName, String tablePrefix) {
 		if(StringUtils.isNotBlank(tablePrefix)){
-			tableName = tableName.replace(tablePrefix, "");
+			String[] prefixs = tablePrefix.split(",");
+			for(String prefix : prefixs){
+				if(StringUtils.isNotBlank(prefix)&&tableName.indexOf(prefix)==0){
+					tableName = tableName.replaceFirst(prefix, "");
+				}
+			}
 		}
 		return columnToJava(tableName);
 	}

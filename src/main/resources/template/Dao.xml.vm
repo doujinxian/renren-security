@@ -25,7 +25,10 @@
         <trim suffix="" suffixOverrides="and">
 #foreach($column in $columns)
 #if($column.columnName != $pk.columnName)
-			<if test="$column.attrname != null">`$column.columnName` = #{$column.attrname}#if($velocityCount != $columns.size()), #end</if>
+			<if test="$column.attrname != null#if($column.attrType=='Long' || $column.attrType=='Integer' || $column.attrType=='BigDecimal') and $column.attrname != 0 #end#if($column.attrType=='String') and $column.attrname != ''#end">
+				`$column.columnName` = #{$column.attrname}#if($velocityCount != $columns.size()) and #end
+			
+			</if>
 #end
 #end
         </trim>
@@ -63,7 +66,10 @@
 		<trim suffix="" suffixOverrides=",">
 #foreach($column in $columns)
 #if($column.columnName != $pk.columnName || $pk.extra != 'auto_increment')
-			<if test="$column.attrname!=null">$column.columnName#if($velocityCount != $columns.size()), #end</if>
+			<if test="$column.attrname !=null#if($column.attrType=='Long' || $column.attrType=='Integer' || $column.attrType=='BigDecimal') and $column.attrname != 0 #end#if($column.attrType=='String') and $column.attrname != ''#end">
+				$column.columnName#if($velocityCount != $columns.size()), #end
+			
+			</if>
 #end			
 #end
 	     </trim>
@@ -73,7 +79,10 @@
 		<trim suffix="" suffixOverrides=",">
 #foreach($column in $columns)
 #if($column.columnName != $pk.columnName || $pk.extra != 'auto_increment')
-			<if test="$column.attrname!=null">#{$column.attrname}#if($velocityCount != $columns.size()), #end</if>
+			<if test="$column.attrname !=null#if($column.attrType=='Long' || $column.attrType=='Integer' || $column.attrType=='BigDecimal') and $column.attrname != 0 #end#if($column.attrType=='String') and $column.attrname != ''#end">
+				#{$column.attrname}#if($velocityCount != $columns.size()), #end
+			
+			</if>
 #end			
 #end
 	     </trim>
@@ -85,7 +94,10 @@
 		<set>
 #foreach($column in $columns)
 #if($column.columnName != $pk.columnName)
-			<if test="$column.attrname != null">`$column.columnName` = #{$column.attrname}#if($velocityCount != $columns.size()), #end</if>
+			<if test="$column.attrname != null#if($column.attrType=='Long' || $column.attrType=='Integer' || $column.attrType=='BigDecimal') and $column.attrname != 0 #end#if($column.attrType=='String') and $column.attrname != ''#end">
+				`$column.columnName` = #{$column.attrname}#if($velocityCount != $columns.size()), #end
+			
+			</if>
 #end
 #end
 		</set>
